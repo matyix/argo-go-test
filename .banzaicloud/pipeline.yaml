@@ -1,0 +1,38 @@
+cluster:
+  name: "banzai-cicd-cluster"
+  provider: "google"
+
+workspace:
+  base: /go
+  path: src/github.com/matyix/argo-go-test
+
+pipeline:
+  print_env:
+    image: golang:1.10
+    commands:
+    - pwd
+    - env
+    - find .
+    group: build
+
+  build:
+    image: golang:1.10
+    commands:
+    - make build
+
+  build_container:
+    image: plugins/docker
+    dockerfile: Dockerfile
+    repo: matyix/argo
+    tags: '{{ printf "%s" .DRONE_BRANCH }}'
+    log: debug
+
+services:
+  vault:
+    image: vault:0.10.4
+    ports:
+    - 8200
+    environment:
+      SKIP_SETCAP: "true"
+      VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+  
